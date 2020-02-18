@@ -2,8 +2,10 @@ from applicationinsights import channel, exceptions
 import unittest
 
 import sys
-import os
 import os.path
+
+from tests.applicationinsights_tests.common import MockSynchronousSender
+
 rootDirectory = os.path.join(os.path.dirname(
     os.path.realpath(__file__)), '..', '..')
 if rootDirectory not in sys.path:
@@ -40,11 +42,4 @@ def mock_excepthook(type, value, tb):
     pass
 
 
-class MockSynchronousSender:
-    def __init__(self):
-        self.send_buffer_size = 1
-        self.data = []
-        self.queue = None
 
-    def send(self, data_to_send):
-        self.data.append(data_to_send)

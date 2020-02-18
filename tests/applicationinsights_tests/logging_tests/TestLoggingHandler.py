@@ -4,11 +4,11 @@ import unittest
 import logging as pylogging
 
 import sys
-import os
 import os.path
 
 from applicationinsights.channel import AsynchronousQueue, AsynchronousSender
 from applicationinsights.channel import SynchronousQueue, SynchronousSender
+from tests.applicationinsights_tests.common import MockSynchronousSender
 
 rootDirectory = os.path.join(os.path.dirname(
     os.path.realpath(__file__)), '..', '..')
@@ -170,13 +170,3 @@ class TestLoggingHandler(unittest.TestCase):
 class MockChannel:
     def flush(self):
         pass
-
-
-class MockSynchronousSender:
-    def __init__(self):
-        self.send_buffer_size = 1
-        self.data = []
-        self.queue = None
-
-    def send(self, data_to_send):
-        self.data.append(data_to_send)

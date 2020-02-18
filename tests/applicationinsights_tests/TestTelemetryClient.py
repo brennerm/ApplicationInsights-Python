@@ -1,6 +1,5 @@
 from applicationinsights import TelemetryClient, channel
 import unittest
-import inspect
 import json
 import sys
 

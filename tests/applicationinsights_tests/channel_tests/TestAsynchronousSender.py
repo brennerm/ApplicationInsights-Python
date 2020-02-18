@@ -3,7 +3,6 @@ import unittest
 import time
 
 import sys
-import os
 import os.path
 rootDirectory = os.path.join(os.path.dirname(
     os.path.realpath(__file__)), '..', '..')

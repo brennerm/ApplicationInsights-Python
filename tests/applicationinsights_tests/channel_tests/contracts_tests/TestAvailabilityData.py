@@ -1,13 +1,9 @@
 from .Utils import TestJsonEncoder
 from applicationinsights.channel.contracts import AvailabilityData
 import unittest
-import datetime
-import uuid
-import sys
 import json
 
 import sys
-import os
 import os.path
 root_directory = os.path.join(os.path.dirname(
     os.path.realpath(__file__)), '..', '..', '..', '..')

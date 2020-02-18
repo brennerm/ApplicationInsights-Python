@@ -62,6 +62,12 @@ setup(
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
     packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
+    extras_require={
+       "requests-client": ["requests"],
+       "urllib3-client": ["urllib3"]
+    },
+
+    tests_require=["httpretty", "requests", "urllib3"],
 
     test_suite='tests.applicationinsights_tests'
 )

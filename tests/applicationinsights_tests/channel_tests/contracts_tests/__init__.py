@@ -17,3 +17,5 @@ from .TestOperation import TestOperation
 from .TestSession import TestSession
 from .TestUser import TestUser
 from .TestInternal import TestInternal
+from .TestAvailabilityData import TestAvailabilityData
+from .Utils import TestJsonEncoder
