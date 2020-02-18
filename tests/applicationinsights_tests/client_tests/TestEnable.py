@@ -83,8 +83,8 @@ class TestEnable(unittest.TestCase):
             body='{"foo": "bar"}'
         )
 
-        assert json.loads(urllib3.PoolManager().request("GET", BASE_HTTP_URL).data) == {"foo": "bar"}
-        assert json.loads(urllib3.PoolManager().request("GET", BASE_HTTPS_URL).data) == {"foo": "bar"}
+        assert json.loads(urllib3.PoolManager().request("GET", BASE_HTTP_URL).data.decode('utf-8')) == {"foo": "bar"}
+        assert json.loads(urllib3.PoolManager().request("GET", BASE_HTTPS_URL).data.decode('utf-8')) == {"foo": "bar"}
 
         for i in range(2):
             data = sender.data[i][0]
