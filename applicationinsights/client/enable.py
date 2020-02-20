@@ -57,6 +57,111 @@ def __enable_for_urllib3(http_connection_pool_class, https_connection_pool_class
     https_connection_pool_class.urlopen = custom_urlopen_wrapper(orig_https_urlopen_method)
 
 
+def enable_for_urllib(instrumentation_key, telemetry_channel=None, always_flush=False):
+    if not instrumentation_key:
+        raise Exception('Instrumentation key was required but not provided')
+
+    if telemetry_channel is None:
+        sender = AsynchronousSender()
+        queue = AsynchronousQueue(sender)
+        telemetry_channel = TelemetryChannel(None, queue)
+
+    client = TelemetryClient(instrumentation_key, telemetry_channel)
+
+    import urllib.request
+
+    class AppInsightsHTTPHandler(urllib.request.HTTPHandler):
+        def http_open(self, req):
+            start_time = current_milli_time()
+            response = super().http_open(req)
+
+            duration = current_milli_time() - start_time
+            method = req.get_method()
+            url = req.selector
+            success = response.status < 400
+
+            client.track_dependency(req.host, "{} {}".format(method, url), target=url, duration=duration,
+                                    success=success, result_code=response.status)
+            if always_flush:
+                client.flush()
+
+            return response
+
+    class AppInsightsHTTPSHandler(urllib.request.HTTPSHandler):
+        def https_open(self, req):
+            start_time = current_milli_time()
+            response = super().https_open(req)
+
+            duration = current_milli_time() - start_time
+            method = req.get_method()
+            url = req.selector
+            success = response.status < 400
+
+            client.track_dependency(req.host, "{} {}".format(method, url), target=url, duration=duration,
+                                    success=success, result_code=response.status)
+            if always_flush:
+                client.flush()
+
+            return response
+
+    urllib.request.install_opener(
+        urllib.request.build_opener(AppInsightsHTTPHandler, AppInsightsHTTPSHandler)
+    )
+
+
+
+def enable_for_urllib2(instrumentation_key, telemetry_channel=None, always_flush=False):
+    if not instrumentation_key:
+        raise Exception('Instrumentation key was required but not provided')
+
+    if telemetry_channel is None:
+        sender = AsynchronousSender()
+        queue = AsynchronousQueue(sender)
+        telemetry_channel = TelemetryChannel(None, queue)
+
+    client = TelemetryClient(instrumentation_key, telemetry_channel)
+
+    import urllib2
+
+    class AppInsightsHTTPHandler(urllib2.HTTPHandler, object):
+        def http_open(self, req):
+            start_time = current_milli_time()
+            response = super(AppInsightsHTTPHandler, self).http_open(req)
+
+            duration = current_milli_time() - start_time
+            method = req.get_method()
+            url = req.get_selector()
+            success = response.code < 400
+
+            client.track_dependency(req.host, "{} {}".format(method, url), target=url, duration=duration,
+                                    success=success, result_code=response.code)
+            if always_flush:
+                client.flush()
+
+            return response
+
+    class AppInsightsHTTPSHandler(urllib2.HTTPSHandler, object):
+        def https_open(self, req):
+            start_time = current_milli_time()
+            response = super(AppInsightsHTTPSHandler, self).https_open(req)
+
+            duration = current_milli_time() - start_time
+            method = req.get_method()
+            url = req.get_selector()
+            success = response.code < 400
+
+            client.track_dependency(req.host, "{} {}".format(method, url), target=url, duration=duration,
+                                    success=success, result_code=response.code)
+            if always_flush:
+                client.flush()
+
+            return response
+
+    urllib2.install_opener(
+        urllib2.build_opener(AppInsightsHTTPHandler, AppInsightsHTTPSHandler)
+    )
+
+
 def enable_for_urllib3(instrumentation_key, telemetry_channel=None, always_flush=False):
     from urllib3.connectionpool import HTTPConnectionPool, HTTPSConnectionPool
     __enable_for_urllib3(HTTPConnectionPool, HTTPSConnectionPool, instrumentation_key, telemetry_channel, always_flush)
