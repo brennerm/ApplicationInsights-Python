@@ -48,10 +48,10 @@ class TestEnable(unittest.TestCase):
 
         for url in [BASE_HTTP_URL, BASE_HTTPS_URL]:
             response = requests.get(url)
-            self.assertEqual(response.status_code, 200)
-            self.assertEqual(response.json(), {"foo": "bar"})
+            self.assertEqual(200, response.status_code)
+            self.assertEqual({"foo": "bar"}, response.json())
 
-        self.assertEqual(len(sender.data), 2)
+        self.assertEqual(2, len(sender.data))
 
         for i in range(2):
             data = sender.data[i][0]
@@ -91,10 +91,10 @@ class TestEnable(unittest.TestCase):
 
         for url in [BASE_HTTP_URL, BASE_HTTPS_URL]:
             response = urllib3.PoolManager().request("GET", url)
-            self.assertEqual(response.status, 200)
-            self.assertEqual(json.loads(response.data.decode('utf-8')), {"foo": "bar"})
+            self.assertEqual(200, response.status)
+            self.assertEqual({"foo": "bar"}, json.loads(response.data.decode('utf-8')))
 
-        self.assertEqual(len(sender.data), 2)
+        self.assertEqual(2, len(sender.data))
 
         for i in range(2):
             data = sender.data[i][0]
@@ -137,10 +137,10 @@ class TestEnable(unittest.TestCase):
 
         for url in [BASE_HTTP_URL, BASE_HTTPS_URL]:
             response = urllib.request.urlopen(url)
-            self.assertEqual(response.status, 200)
-            self.assertEqual(json.loads(response.read().decode('utf-8')), {"foo": "bar"})
+            self.assertEqual(200, response.status)
+            self.assertEqual({"foo": "bar"}, json.loads(response.read().decode('utf-8')))
 
-        self.assertEqual(len(sender.data), 2)
+        self.assertEqual(2, len(sender.data))
 
         for i in range(2):
             data = sender.data[i][0]

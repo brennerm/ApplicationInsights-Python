@@ -8,6 +8,21 @@ import time
 current_milli_time = lambda: int(round(time.time() * 1000))
 
 
+def _track_dependency(tc, always_flush, host, method, url, duration, response_code):
+    success = response_code < 400
+
+    tc.track_dependency(
+        host, "{} {}".format(method, url),
+        target=url,
+        duration=duration,
+        success=success,
+        result_code=response_code
+    )
+
+    if always_flush:
+        tc.flush()
+
+
 def enable_all(*args, **kwargs):
     enable_for_requests(*args, **kwargs)
     enable_for_urllib3(*args, **kwargs)
@@ -38,7 +53,6 @@ def __enable_for_urllib3(http_connection_pool_class, https_connection_pool_class
             response = urlopen_func(*args, **kwargs)
             try:  # make sure to always return the response
                 duration = current_milli_time() - start_time
-
                 try:
                     method = args[1]
                 except IndexError:
@@ -49,12 +63,7 @@ def __enable_for_urllib3(http_connection_pool_class, https_connection_pool_class
                 except IndexError:
                     url = kwargs['url']
 
-                success = response.status < 400
-
-                client.track_dependency(args[0].host, "{} {}".format(method, url), target=url, duration=duration,
-                                        success=success, result_code=response.status)
-                if always_flush:
-                    client.flush()
+                _track_dependency(client, always_flush, args[0].host, method, url, duration, response.status)
             finally:
                 return response
 
@@ -72,6 +81,20 @@ def enable_for_urllib3(instrumentation_key, telemetry_channel=None, always_flush
 def enable_for_requests(instrumentation_key, telemetry_channel=None, always_flush=False):
     from requests.packages.urllib3.connectionpool import HTTPConnectionPool, HTTPSConnectionPool
     __enable_for_urllib3(HTTPConnectionPool, HTTPSConnectionPool, instrumentation_key, telemetry_channel, always_flush)
+
+
+def _track_for_urllib(tc, always_flush, start_time, req, resp):
+    duration = current_milli_time() - start_time
+    method = req.get_method()
+
+    if sys.version_info.major > 2:
+        url = req.selector
+        status = resp.status
+    else:
+        url = req.get_selector()
+        status = resp.code
+
+    _track_dependency(tc, always_flush, req.host, method, url, duration, status)
 
 
 def __enable_for_urllib(base_http_handler_class, base_https_handler_class, instrumentation_key, telemetry_channel=None, always_flush=False):
@@ -92,22 +115,7 @@ def __enable_for_urllib(base_http_handler_class, base_https_handler_class, instr
             response = super(AppInsightsHTTPHandler, self).http_open(req)
 
             try:
-                duration = current_milli_time() - start_time
-                method = req.get_method()
-
-                if sys.version_info.major > 2:
-                    url = req.selector
-                    status = response.status
-                else:
-                    url = req.get_selector()
-                    status = response.code
-
-                success = status < 400
-
-                client.track_dependency(req.host, "{} {}".format(method, url), target=url, duration=duration,
-                                        success=success, result_code=status)
-                if always_flush:
-                    client.flush()
+                _track_for_urllib(client, always_flush, start_time, req, response)
             finally:
                 return response
 
@@ -117,22 +125,7 @@ def __enable_for_urllib(base_http_handler_class, base_https_handler_class, instr
             response = super(AppInsightsHTTPSHandler, self).https_open(req)
 
             try:
-                duration = current_milli_time() - start_time
-                method = req.get_method()
-
-                if sys.version_info.major > 2:
-                    url = req.selector
-                    status = response.status
-                else:
-                    url = req.get_selector()
-                    status = response.code
-
-                success = status < 400
-
-                client.track_dependency(req.host, "{} {}".format(method, url), target=url, duration=duration,
-                                        success=success, result_code=status)
-                if always_flush:
-                    client.flush()
+                _track_for_urllib(client, always_flush, start_time, req, response)
             finally:
                 return response
 
