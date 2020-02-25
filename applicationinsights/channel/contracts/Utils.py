@@ -7,7 +7,7 @@ def _write_complex_object(defaults, values):
         default = defaults[key]
         if key in values:
             value = values[key]
-            if value == None:
+            if value is None:
                 value = default
         elif default:
             value = default

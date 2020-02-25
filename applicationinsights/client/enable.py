@@ -1,7 +1,7 @@
 import sys
 
 from applicationinsights import TelemetryClient
-from applicationinsights.channel import AsynchronousSender, AsynchronousQueue, TelemetryChannel
+from applicationinsights.channel import SynchronousSender, SynchronousQueue, TelemetryChannel
 
 import time
 
@@ -12,7 +12,8 @@ def _track_dependency(tc, always_flush, host, method, url, duration, response_co
     success = response_code < 400
 
     tc.track_dependency(
-        host, "{} {}".format(method, url),
+        name=host,
+        data="{} {}".format(method, url),
         target=url,
         duration=duration,
         success=success,
@@ -23,23 +24,14 @@ def _track_dependency(tc, always_flush, host, method, url, duration, response_co
         tc.flush()
 
 
-def enable_all(*args, **kwargs):
-    enable_for_requests(*args, **kwargs)
-    enable_for_urllib3(*args, **kwargs)
-
-    if sys.version_info.major > 2:
-        enable_for_urllib(*args, **kwargs)
-    else:
-        enable_for_urllib2(*args, **kwargs)
-
-
-def __enable_for_urllib3(http_connection_pool_class, https_connection_pool_class, instrumentation_key, telemetry_channel, always_flush):
+def __enable_for_urllib3(http_connection_pool_class, https_connection_pool_class, instrumentation_key,
+                         telemetry_channel, always_flush):
     if not instrumentation_key:
         raise Exception('Instrumentation key was required but not provided')
 
     if telemetry_channel is None:
-        sender = AsynchronousSender()
-        queue = AsynchronousQueue(sender)
+        sender = SynchronousSender()
+        queue = SynchronousQueue(sender)
         telemetry_channel = TelemetryChannel(None, queue)
 
     client = TelemetryClient(instrumentation_key, telemetry_channel)
@@ -74,11 +66,45 @@ def __enable_for_urllib3(http_connection_pool_class, https_connection_pool_class
 
 
 def enable_for_urllib3(instrumentation_key, telemetry_channel=None, always_flush=False):
+    """Enables the automatic collection of dependency telemetries for HTTP calls with urllib3.
+
+    .. code:: python
+
+        from applicationinsights.client import enable_for_urllib3
+        import urllib3.requests
+
+        enable_for_urllib3('<YOUR INSTRUMENTATION KEY GOES HERE>')
+
+        urllib3.PoolManager().request("GET", "https://www.python.org/")
+        # a dependency telemetry will be sent to the Application Insights service
+
+    Args:
+        instrumentation_key (str). the instrumentation key to use while sending telemetry to the service.
+        telemetry_channel (TelemetryChannel). a custom telemetry channel to use
+        always_flush (bool). if true every HTTP call will flush the dependency telemetry
+    """
     from urllib3.connectionpool import HTTPConnectionPool, HTTPSConnectionPool
     __enable_for_urllib3(HTTPConnectionPool, HTTPSConnectionPool, instrumentation_key, telemetry_channel, always_flush)
 
 
 def enable_for_requests(instrumentation_key, telemetry_channel=None, always_flush=False):
+    """Enables the automatic collection of dependency telemetries for HTTP calls with requests.
+
+    .. code:: python
+
+        from applicationinsights.client import enable_for_requests
+        import requests
+
+        enable_for_requests('<YOUR INSTRUMENTATION KEY GOES HERE>')
+
+        requests.get("https://www.python.org/")
+        # a dependency telemetry will be sent to the Application Insights service
+
+    Args:
+        instrumentation_key (str). the instrumentation key to use while sending telemetry to the service.
+        telemetry_channel (TelemetryChannel). a custom telemetry channel to use
+        always_flush (bool). if true every HTTP call will flush the dependency telemetry
+    """
     from requests.packages.urllib3.connectionpool import HTTPConnectionPool, HTTPSConnectionPool
     __enable_for_urllib3(HTTPConnectionPool, HTTPSConnectionPool, instrumentation_key, telemetry_channel, always_flush)
 
@@ -97,14 +123,15 @@ def _track_for_urllib(tc, always_flush, start_time, req, resp):
     _track_dependency(tc, always_flush, req.host, method, url, duration, status)
 
 
-def __enable_for_urllib(base_http_handler_class, base_https_handler_class, instrumentation_key, telemetry_channel=None, always_flush=False):
+def __enable_for_urllib(base_http_handler_class, base_https_handler_class, instrumentation_key, telemetry_channel=None,
+                        always_flush=False):
     pass
     if not instrumentation_key:
         raise Exception('Instrumentation key was required but not provided')
 
     if telemetry_channel is None:
-        sender = AsynchronousSender()
-        queue = AsynchronousQueue(sender)
+        sender = SynchronousSender()
+        queue = SynchronousQueue(sender)
         telemetry_channel = TelemetryChannel(None, queue)
 
     client = TelemetryClient(instrumentation_key, telemetry_channel)
@@ -133,6 +160,23 @@ def __enable_for_urllib(base_http_handler_class, base_https_handler_class, instr
 
 
 def enable_for_urllib(instrumentation_key, telemetry_channel=None, always_flush=False):
+    """Enables the automatic collection of dependency telemetries for HTTP calls with urllib.
+
+    .. code:: python
+
+        from applicationinsights.client import enable_for_urllib
+        import urllib.requests
+
+        enable_for_urllib('<YOUR INSTRUMENTATION KEY GOES HERE>')
+
+        urllib.request.urlopen("https://www.python.org/")
+        # a dependency telemetry will be sent to the Application Insights service
+
+    Args:
+        instrumentation_key (str). the instrumentation key to use while sending telemetry to the service.
+        telemetry_channel (TelemetryChannel). a custom telemetry channel to use
+        always_flush (bool). if true every HTTP call will flush the dependency telemetry
+    """
     import urllib.request
 
     http_handler, https_handler = __enable_for_urllib(
@@ -149,6 +193,23 @@ def enable_for_urllib(instrumentation_key, telemetry_channel=None, always_flush=
 
 
 def enable_for_urllib2(instrumentation_key, telemetry_channel=None, always_flush=False):
+    """Enables the automatic collection of dependency telemetries for HTTP calls with urllib2.
+
+    .. code:: python
+
+        from applicationinsights.client import enable_for_urllib2
+        import urllib2
+
+        enable_for_urllib2('<YOUR INSTRUMENTATION KEY GOES HERE>')
+
+        urllib2.urlopen("https://www.python.org/")
+        # a dependency telemetry will be sent to the Application Insights service
+
+    Args:
+        instrumentation_key (str). the instrumentation key to use while sending telemetry to the service.
+        telemetry_channel (TelemetryChannel). a custom telemetry channel to use
+        always_flush (bool). if true every HTTP call will flush the dependency telemetry
+    """
     import urllib2
 
     http_handler, https_handler = __enable_for_urllib(
@@ -161,5 +222,3 @@ def enable_for_urllib2(instrumentation_key, telemetry_channel=None, always_flush
     urllib2.install_opener(
         urllib2.build_opener(http_handler, https_handler)
     )
-
-

@@ -1,13 +1,9 @@
 from .Utils import TestJsonEncoder
 from applicationinsights.channel.contracts import RemoteDependencyData
 import unittest
-import datetime
-import uuid
-import sys
 import json
 
 import sys
-import os
 import os.path
 root_directory = os.path.join(os.path.dirname(
     os.path.realpath(__file__)), '..', '..', '..', '..')
@@ -159,5 +155,5 @@ class TestRemoteDependencyData(unittest.TestCase):
             item.properties[key] = value
         actual = json.dumps(item.write(), separators=(
             ',', ':'), cls=TestJsonEncoder)
-        expected = '{"ver":42,"name":"Test string","duration":1.5,"success":true,"properties":{"key1":"test value 1","key2":"test value 2"}}'
+        expected = '{"ver":42,"name":"Test string","duration":1.5,"success":true,"type":"HTTP","properties":{"key1":"test value 1","key2":"test value 2"}}'
         self.assertEqual(expected, actual)

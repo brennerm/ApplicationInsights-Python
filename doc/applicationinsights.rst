@@ -9,6 +9,7 @@ applicationinsights module
     applicationinsights.requests
     applicationinsights.django
     applicationinsights.exceptions
+    applicationinsights.client
 
 TelemetryClient class
 ----------------------

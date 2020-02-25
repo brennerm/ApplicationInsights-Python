@@ -11,6 +11,8 @@ except ImportError:
 
 DEFAULT_ENDPOINT_URL = 'https://dc.services.visualstudio.com/v2/track'
 
+default_openers = HTTPClient._opener
+
 
 class SenderBase(object):
     """The base class for all types of senders for use in conjunction with an implementation of :class:`QueueBase`.
@@ -135,7 +137,13 @@ class SenderBase(object):
 
         request = HTTPClient.Request(self._service_endpoint_uri, bytearray(
             request_payload, 'utf-8'), {'Accept': 'application/json', 'Content-Type': 'application/json; charset=utf-8'})
+
+        current_opener = HTTPClient._opener
+
         try:
+            # we need to set the default urllib openers here
+            # otherwise we would intercept the HTTP calls to Application Insights and create dependency telemetry for them as well
+            HTTPClient._opener = default_openers
             response = HTTPClient.urlopen(request, timeout=self._timeout)
             status_code = response.getcode()
             if 200 <= status_code < 300:
@@ -145,6 +153,8 @@ class SenderBase(object):
                 return
         except Exception as e:
             pass
+        finally:
+            HTTPClient._opener = current_opener
 
         # Add our unsent data back on to the queue
         for data in data_to_send:

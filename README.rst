@@ -263,6 +263,56 @@ Since operation_id is being set as a property of telemetry client, the client sh
 
     # exceptions will cause a flush of all un-sent telemetry items
 
+**Track dependency telemetry for HTTP requests with requests**
+
+.. code:: python
+
+    from applicationinsights.client import enable_for_requests
+    import requests
+
+    enable_for_requests('<YOUR INSTRUMENTATION KEY GOES HERE>')
+
+    requests.get("https://www.python.org/")
+    # a dependency telemetry will be sent to the Application Insights service
+
+**Track dependency telemetry for HTTP requests with urllib**
+
+.. code:: python
+
+    from applicationinsights.client import enable_for_urllib
+    import urllib.requests
+
+    enable_for_urllib('<YOUR INSTRUMENTATION KEY GOES HERE>')
+
+    urllib.request.urlopen("https://www.python.org/")
+    # a dependency telemetry will be sent to the Application Insights service
+
+**Track dependency telemetry for HTTP requests with urllib2**
+
+.. code:: python
+
+    from applicationinsights.client import enable_for_urllib2
+    import urllib2
+
+    enable_for_urllib2('<YOUR INSTRUMENTATION KEY GOES HERE>')
+
+    urllib2.urlopen("https://www.python.org/")
+    # a dependency telemetry will be sent to the Application Insights service
+
+
+**Track dependency telemetry for HTTP requests with urllib3**
+
+.. code:: python
+
+    from applicationinsights.client import enable_for_urllib3
+    import urllib3.requests
+
+    enable_for_urllib3('<YOUR INSTRUMENTATION KEY GOES HERE>')
+
+    urllib3.PoolManager().request("GET", "https://www.python.org/")
+    # a dependency telemetry will be sent to the Application Insights service
+
+
 **Integrating with Flask**
 
 .. code:: python

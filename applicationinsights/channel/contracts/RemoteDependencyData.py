@@ -19,7 +19,7 @@ class RemoteDependencyData(object):
         ('success', True),
         ('data', None),
         ('target', None),
-        ('type', None),
+        ('type', 'HTTP'),
         ('properties', {}),
         ('measurements', {})
     ])
