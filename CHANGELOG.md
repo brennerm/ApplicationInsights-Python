@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.12.0
+- Add HTTP client interceptors for urllib, urllib2, urllib3 and requests that automatically track dependencies
+- Change default type to HTTP for track_dependency
+
 ## 0.11.13
 - Fix envelope type name of AvailabilityData
 
